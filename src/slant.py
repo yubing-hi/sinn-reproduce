@@ -3,10 +3,9 @@ import torch
 from torch.utils.data import Dataset
 
 from torch import nn
-from torchmeta.modules import (MetaModule, MetaSequential)
 
 
-class model(MetaModule):
+class model(nn.Module):
 
     def __init__(self, num_users=1, type='relu', 
                  hidden_features=256, num_hidden_layers=3, **kwargs):
@@ -28,7 +27,7 @@ class model(MetaModule):
                             batch_first=True,
                             bidirectional=False)
 
-    def forward(self, model_input, params=None):
+    def forward(self, model_input):
 
         history = model_input['history']
         uj = history[:,:,0].long()

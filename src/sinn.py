@@ -4,7 +4,6 @@ from torch.utils.data import Dataset
 from torch.autograd import grad
 
 from torch import nn
-from torchmeta.modules import (MetaModule, MetaSequential)
 from modules import MLPNet
 import torch.nn.functional as F
 
@@ -55,7 +54,7 @@ def gumbel_softmax(logits, temperature=0.2):
     return F.softmax(y / temperature, dim=-1)
  
 
-class model(MetaModule):
+class model(nn.Module):
 
     def __init__(self, num_users=1, type='relu',  
                  hidden_features=256, num_hidden_layers=3, nclasses=None, **kwargs):
@@ -110,7 +109,7 @@ class model(MetaModule):
         return logits
 
 
-    def forward(self, model_input, params=None):
+    def forward(self, model_input):
 
         ### Set neural network input: times $t$ and user id $u$
         times = model_input['ti']

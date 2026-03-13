@@ -3,7 +3,6 @@ import torch
 from torch.utils.data import Dataset
 
 from torch import nn
-from torchmeta.modules import (MetaModule, MetaSequential)
 from modules import MLPNet
 
 
@@ -25,7 +24,7 @@ def loss_function(model_output, gt):
            }
 
 
-class model(MetaModule):
+class model(nn.Module):
 
     def __init__(self, num_users=1, type='relu', 
                  hidden_features=256, num_hidden_layers=3, nclasses=None, **kwargs):
@@ -47,7 +46,7 @@ class model(MetaModule):
 
         #print(self)
 
-    def forward(self, model_input, params=None):
+    def forward(self, model_input):
 
         times = model_input['ti']
         uids = model_input['ui']

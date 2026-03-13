@@ -1,9 +1,5 @@
 import torch
 from torch import nn
-try:
-    from torchmeta.modules import (MetaModule, MetaSequential)
-except Exception:
-    from torchmeta_shim import (MetaModule, MetaSequential)
 import numpy as np
 from collections import OrderedDict
 import math
@@ -81,7 +77,7 @@ class MLPNet(nn.Module):
         self.net = nn.Sequential(*self.net)
 
         
-    def forward(self, times, users, profs=None, params=None, **kwargs):
+    def forward(self, times, users, profs=None, **kwargs):
 
         x = self.embed_times(times.float())
         y = self.embed_users(users.long())

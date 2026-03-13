@@ -11,6 +11,7 @@ from datasets import load_dataset, DatasetDict, Features, Value, ClassLabel
 from distutils.util import strtobool
 
 import torch
+import torch.nn as nn
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import configargparse

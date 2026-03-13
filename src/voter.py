@@ -3,10 +3,9 @@ import torch
 from torch.utils.data import Dataset
 
 from torch import nn
-from torchmeta.modules import (MetaModule, MetaSequential)
 
 
-class model(MetaModule):
+class model(nn.Module):
 
     def __init__(self, num_users=1, type='relu', 
                  hidden_features=256, num_hidden_layers=3, **kwargs):
@@ -17,7 +16,7 @@ class model(MetaModule):
         self.num_users = num_users
         #print(self)
 
-    def forward(self, model_input, params=None):
+    def forward(self, model_input):
 
         previous = model_input['previous']
         uids = model_input['ui']
