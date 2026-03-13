@@ -6,17 +6,18 @@ import numpy as np
 import os
 import shutil
 
-model_input = {k:v.to(device) for k,v in model_input.items()}
-gt = {k:v.to(device) for k,v in gt.items()}
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train(model, train_dataloader, epochs, lr, loss_fn, val_dataloader=None, clip_grad=False, method=None, input_sequence=None):
-
+    model.to(device)
     optim = torch.optim.Adam(lr=lr, params=model.parameters())
 
     train_losses = []
     for epoch in range(epochs):
 
         for step, (model_input, gt) in enumerate(train_dataloader):
+            model_input = {k: v.to(device) for k, v in model_input.items()}
+            gt = {k: v.to(device) for k, v in gt.items()}
             start_time = time.time()
         
             model_output = model(model_input)
@@ -45,6 +46,8 @@ def train(model, train_dataloader, epochs, lr, loss_fn, val_dataloader=None, cli
         with torch.no_grad():
             val_loss = 0.
             for (model_input, gt) in val_dataloader:
+                model_input = {k: v.to(device) for k, v in model_input.items()}
+                gt = {k: v.to(device) for k, v in gt.items()}
                 model_output = model(model_input)
                 losses = loss_fn(model_output, gt)
             for loss_name, loss in losses.items():
