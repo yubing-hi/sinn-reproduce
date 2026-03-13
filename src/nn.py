@@ -36,8 +36,8 @@ class model(nn.Module):
             flag_profile = False
         else:
             flag_profile = True
-            profiles = profiles.reshape(-1,25,768)
-            self.profiles = torch.from_numpy(profiles.astype(np.float32)).clone() 
+            profiles = profiles.reshape(-1, 25, 768)
+            self.register_buffer('profiles', torch.from_numpy(profiles.astype(np.float32)).clone())
         self.flag_profile = flag_profile
 
         self.net = MLPNet(num_users=num_users, num_hidden_layers=num_hidden_layers,

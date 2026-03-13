@@ -11,8 +11,8 @@ class model(nn.Module):
                  hidden_features=256, num_hidden_layers=3, **kwargs):
         super().__init__()
 
-        A = torch.ones(num_users,num_users)
-        self.A = A / num_users 
+        A = torch.ones(num_users, num_users) / num_users
+        self.register_buffer('A', A)
         self.num_users = num_users
         #print(self)
 
@@ -20,9 +20,10 @@ class model(nn.Module):
 
         previous = model_input['previous']
         uids = model_input['ui']
+        device = previous.device
 
-        uid = torch.randint(self.num_users-1, uids.shape)
-        output = torch.gather(previous,1,uid)
+        uid = torch.randint(self.num_users - 1, uids.shape, device=device)
+        output = torch.gather(previous, 1, uid)
         
         return {'opinion': output}
 

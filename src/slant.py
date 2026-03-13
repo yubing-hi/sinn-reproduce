@@ -30,6 +30,7 @@ class model(nn.Module):
     def forward(self, model_input):
 
         history = model_input['history']
+        device = history.device
         uj = history[:,:,0].long()
         mj = history[:,:,1]
         tj = history[:,:,2]
@@ -44,7 +45,7 @@ class model(nn.Module):
         alphai = torch.index_select(alpha,0,ui[:,0])
         betai = torch.index_select(beta,0,ui[:,0])
 
-        users_j = torch.arange(self.num_users)
+        users_j = torch.arange(self.num_users, device=device)
 
         A0 = self.A0(ui[:,0]).abs()
         A1 = self.A1(users_j).abs()

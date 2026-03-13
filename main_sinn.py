@@ -152,14 +152,16 @@ def evaluate(model, sequence, train_sequence, num_users, initial_u, batch_size, 
         previous = prev_u[np.newaxis]
         model_out = sequence[np.newaxis,ii]
 
-        model_input = {'history': torch.from_numpy(history).float(), 'previous': torch.from_numpy(previous).float(), 
+        model_input = {'history': torch.from_numpy(history).float(), 'previous': torch.from_numpy(previous).float(),
                        'initial': torch.from_numpy(initial_u).float(), #'pi': torch.from_numpy(pi).float(),
                        'ui': torch.from_numpy(model_out[:,:1]).long(), 'ti': torch.from_numpy(model_out[:,2:]).float()}
+        device = next(model.parameters()).device
+        model_input = {k: v.to(device) for k, v in model_input.items()}
         model_output = model(model_input)
-        test_pred = model_output['opinion'].detach().numpy().flatten()
+        test_pred = model_output['opinion'].detach().cpu().numpy().flatten()
         tmpop = sequence[ii,1:2]
         if 'opinion_label' in model_output.keys(): 
-            test_pred_label = prediction2label(model_output['opinion_label'].detach().numpy())
+            test_pred_label = prediction2label(model_output['opinion_label'].detach().cpu().numpy())
             tmpop = tmpop/(nclasses-1)
         else: 
             test_pred_label = test_pred * (nclasses-1)
@@ -177,31 +179,34 @@ def evaluate(model, sequence, train_sequence, num_users, initial_u, batch_size, 
 
 def prediction(use_profile, dataloader, model, batch_size, nclasses):
 
-    model.train = False
+    model.eval()
+    device = next(model.parameters()).device
     dfs = []
     att_dfs = []
     zu_dfs = []
     for (model_input, gt) in dataloader:
+         model_input = {k: v.to(device) for k, v in model_input.items()}
+         gt = {k: v.to(device) for k, v in gt.items()}
          model_output = model(model_input)
-         test_ui = model_input['ui'].numpy().flatten()#[0]
-         test_ti = model_input['ti'].numpy().flatten()
-         test_oi = gt["opinion"].detach().numpy().flatten()
-         test_pred = model_output['opinion'].detach().numpy().flatten()
+         test_ui = model_input['ui'].cpu().numpy().flatten()  # [0]
+         test_ti = model_input['ti'].cpu().numpy().flatten()
+         test_oi = gt["opinion"].detach().cpu().numpy().flatten()
+         test_pred = model_output['opinion'].detach().cpu().numpy().flatten()
          if 'opinion_label' in model_output.keys(): 
-             test_pred_label = prediction2label(model_output['opinion_label'].detach().numpy())
+             test_pred_label = prediction2label(model_output['opinion_label'].detach().cpu().numpy())
              test_oi = test_oi/(nclasses-1) 
          else: 
              test_pred_label = test_pred * (nclasses-1)
          tmpdf = pd.DataFrame(data = np.c_[test_ui, test_ti, test_oi, test_pred, test_pred_label], columns=["user","time","gt","pred","pred_label"]) 
          dfs.append(tmpdf)
          if 'zu' in model_output.keys() and not model_output['zu'] is None: 
-             zu_pred = model_output['zu'].detach().numpy()
+             zu_pred = model_output['zu'].detach().cpu().numpy()
              print(zu_pred.shape, test_ui.shape)
              if test_ui.shape[0]==zu_pred.shape[0]:
                 zu_tmpdf = pd.DataFrame(data = np.c_[test_ui[:,np.newaxis], zu_pred], columns=["user"]+list(range(zu_pred.shape[1]))) 
                 zu_dfs.append(zu_tmpdf)
          if use_profile:
-             att_pred = model_output['attention'].detach().numpy()[:,:,0]
+             att_pred = model_output['attention'].detach().cpu().numpy()[:, :, 0]
              att_tmpdf = pd.DataFrame(data = np.c_[test_ui[:,np.newaxis], att_pred], columns=["user"]+list(range(25))) 
              att_dfs.append(att_tmpdf)
     res_df = pd.concat(dfs)

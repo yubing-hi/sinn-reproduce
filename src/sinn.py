@@ -48,7 +48,7 @@ def loss_function(model_output, gt, loss_definition="CE"):
 
 def gumbel_softmax(logits, temperature=0.2):
     eps = 1e-20
-    u = torch.rand(logits.shape)
+    u = torch.rand(logits.shape, device=logits.device, dtype=logits.dtype)
     gumbel_noise = -torch.log(-torch.log(u + eps) + eps)
     y = logits + gumbel_noise
     return F.softmax(y / temperature, dim=-1)
@@ -75,8 +75,8 @@ class model(nn.Module):
             use_profile = False
         else:
             use_profile = True
-            profiles = profiles.reshape(-1,25,768)
-            self.profiles = torch.from_numpy(np.array(profiles, dtype=np.float32)).clone()
+            profiles = profiles.reshape(-1, 25, 768)
+            self.register_buffer('profiles', torch.from_numpy(np.array(profiles, dtype=np.float32)).clone())
         self.use_profile = use_profile
 
         ### Prepare neural network $f(t,\{bf e\}_u;\theta_f)$
@@ -130,15 +130,16 @@ class model(nn.Module):
         ### Setup ODE constraints
         tilde_z_ut = None 
 
+        device = times.device
         if self.training:
             ### Sample $J$ collocation points $\{\tau_1,...,\tau_J\}$ from time domain $\tau_j\in[0,T+\Delta T]$ with $T+\Delta T = 1$
-            tau_j = torch.rand(self.J).unsqueeze(1).requires_grad_(True)  
+            tau_j = torch.rand(self.J, device=device).unsqueeze(1).requires_grad_(True)
 
-            users = torch.arange(self.U).unsqueeze(1)
-            taus = tau_j.repeat(users.shape[0],1)
+            users = torch.arange(self.U, device=device).unsqueeze(1)
+            taus = tau_j.repeat(users.shape[0], 1)
 
             if self.use_profile:
-                _profs = torch.index_select(self.profiles,0,users[:,0])
+                _profs = torch.index_select(self.profiles, 0, users[:, 0])
                 _vector_x, _ = self.net(taus, users, _profs)
             else:
                 _vector_x = self.net(taus, users)
@@ -147,7 +148,7 @@ class model(nn.Module):
             vector_x = torch.transpose(torch.reshape(_vector_x, (self.U, self.J)), 1, 0)
 
 
-            user_id = torch.randint(self.U-1, (1,1))  ### Sample user $u$
+            user_id = torch.randint(self.U - 1, (1, 1), device=device)  ### Sample user $u$
             if self.use_profile:
                 _profs = torch.index_select(self.profiles,0,user_id[:,0])
                 x_u, _ = self.net(tau_j, user_id, _profs)
@@ -181,7 +182,7 @@ class model(nn.Module):
                 rhs_ode = rhs_ode.sum(-1)
 
                 ## Regularization term $\mathcal{R}(\Lambda)$
-                regularizer = self.beta * torch.zeros(1)
+                regularizer = self.beta * torch.zeros(1, device=device)
 
             if self.type_odm=="BCM":
                 mu = torch.abs(self.mu)
@@ -217,8 +218,8 @@ class model(nn.Module):
             ode_constraints = gradients_mse(tau_j, x_u, rhs_ode)
             ode_constraint = self.alpha * ode_constraints
         else:
-            ode_constraint = torch.zeros(1)
-            regularizer = torch.zeros(1)
+            ode_constraint = torch.zeros(1, device=device)
+            regularizer = torch.zeros(1, device=device)
 
 
         return {'opinion': output, 'opinion_label': opinion_label, 'ode_constraint': ode_constraint, 

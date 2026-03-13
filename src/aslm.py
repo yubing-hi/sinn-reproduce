@@ -22,9 +22,9 @@ class model(nn.Module):
 
         previous = model_input['previous']
         uids = model_input['ui']
+        device = previous.device
 
-
-        users_j = torch.arange(self.num_users)
+        users_j = torch.arange(self.num_users, device=device)
         W = torch.abs(self.W)
         Wu = torch.index_select(W,0,uids[:,0])
         Wuv = torch.index_select(Wu,1,users_j)
