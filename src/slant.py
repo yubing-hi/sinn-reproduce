@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import Dataset
 
 from torch import nn
+import torch.nn.functional as F
 
 
 class model(nn.Module):
@@ -63,7 +64,8 @@ class model(nn.Module):
         xi = alphai + torch.mean(mj[:,:-1] * Aij * w * torch.exp(-w * delta_ij), axis=-1)
         xi = torch.unsqueeze(xi,-1)
         nu = self.nu
-        lamdai = betai + torch.mean(Bij * nu * torch.exp(-nu * delta_ij), axis=-1)
+        raw_lamdai = betai + torch.mean(Bij * nu * torch.exp(-nu * delta_ij), axis=-1)
+        lamdai = F.softplus(raw_lambda) + 1e-6
 
         log_l = torch.log(lamdai)
         Int_l = torch.sum( torch.unsqueeze(alphai,-1) * delta_ij + (torch.exp(-nu * _delta_ij) - torch.exp(-nu * delta_ij)), axis=-1) 

@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import Dataset
 
 from torch import nn
+import torch.nn.functional as F
 
 
 class model(nn.Module):
@@ -77,6 +78,7 @@ class model(nn.Module):
 
         xi = 0.1 * w * torch.exp( hij[:,:,0] + w * delta_ij + alphai )
         lamdai = nu * torch.exp( hij[:,:,0] + nu * delta_ij + betai )
+        lamdai = F.softplus(lamdai) + 1e-6
 
         log_l = torch.log(lamdai)
         Int_l = torch.exp( hij[:,:,0] + nu * _delta_ij + betai ) - torch.exp( hij[:,:,0] + nu * delta_ij + betai )
