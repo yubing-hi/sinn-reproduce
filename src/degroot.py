@@ -6,32 +6,33 @@ from torch import nn
 
 
 class model(nn.Module):
+    """
+    DeGroot 形式: x_u(t+1) = x_u(t) + sum_{v in U\\u} a_uv * x_v(t)，
+    即下一时刻 = 当前自身意见 + 其他用户意见的加权和（不含自身）。
+    """
 
-    def __init__(self, num_users=1, type='relu', 
+    def __init__(self, num_users=1, type='relu',
                  hidden_features=256, num_hidden_layers=3, **kwargs):
         super().__init__()
-
-        self.A = nn.Embedding(num_users, 5)
-        self.lamda = nn.Embedding(num_users, 5)
-        print(self)
+        self.num_users = num_users
+        # a_uv，v≠u 时表示 u 受 v 的影响权重；对角线在计算时置 0
+        self.A = nn.Parameter(torch.randn(num_users, num_users) * 0.1)
 
     def forward(self, model_input):
-
-        times = model_input['ti']
+        # previous: (batch, num_users)，当前时刻各用户意见
+        # ui: (batch, 1)，要预测的用户 id
+        previous = model_input['previous']
         uids = model_input['ui']
-        Ai = self.A(uids[:,0].long())
-        lamdai = self.lamda(uids[:,0].long())
-        opinion = torch.sum( Ai * torch.exp(lamdai * times), -1 )
-        output = opinion.unsqueeze(-1) 
-
+        device = previous.device
+        # 只保留 v≠u 的权重，对角线置 0
+        A_nd = self.A * (1.0 - torch.eye(self.num_users, device=device))
+        # 自身当前意见 x_u(t)
+        self_opinion = torch.gather(previous, 1, uids)  # (batch, 1)
+        # sum_{v in U\u} a_uv * x_v(t)
+        influence = (A_nd[uids[:, 0], :] * previous).sum(dim=-1, keepdim=True)
+        output = self_opinion + influence
+        output = torch.tanh(output)
         return {'opinion': output}
-
-    def forward_with_activations(self, model_input):
-        '''Returns not only model output, but also intermediate activations.'''
-        times = model_input['times'].clone().detach().requires_grad_(True)
-        activations = self.net.forward_with_activations(times)
-        return {'opinion': activations.popitem(), 'activations': activations}
-
 
 
 def loss_function(model_output, gt, loss_definition="MAE"):
