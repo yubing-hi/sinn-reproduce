@@ -181,7 +181,7 @@ class model(nn.Module):
                 # tilde_z_ut = self.sampling(p_uv)
 
                 ## Right hand side (rhs) of Equation (10)
-                rhs_ode = tilde_z_ut * (x_u - vector_x)
+                rhs_ode = tilde_z_ut * (vector_x - x_u)
                 rhs_ode = rhs_ode.sum(-1)
 
                 ## Regularization term $\mathcal{R}(\Lambda)$
