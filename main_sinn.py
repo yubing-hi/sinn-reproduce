@@ -344,6 +344,10 @@ def main_sinn(data_type, method, root_path):
     print('#######################################')
     print('## Performance for', method, 'on', data_type, 'dataset')
     print("## MAE:", mae.mean())
+
+    print(test_res["pred_label"][:10])   
+    print(test_res["gt"][:10]) 
+
     if (method=="SINN" or method=="NN" or method=="Voter"):
         truth_label = ((nclasses-1)*test_res["gt"]).astype(int)
         acc = accuracy_score(truth_label, test_res["pred_label"])

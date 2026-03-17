@@ -65,7 +65,7 @@ class model(nn.Module):
         xi = torch.unsqueeze(xi,-1)
         nu = self.nu
         raw_lamdai = betai + torch.mean(Bij * nu * torch.exp(-nu * delta_ij), axis=-1)
-        lamdai = F.softplus(raw_lambda) + 1e-6
+        lamdai = F.softplus(raw_lamdai) + 1e-6
 
         log_l = torch.log(lamdai)
         Int_l = torch.sum( torch.unsqueeze(alphai,-1) * delta_ij + (torch.exp(-nu * _delta_ij) - torch.exp(-nu * delta_ij)), axis=-1) 
