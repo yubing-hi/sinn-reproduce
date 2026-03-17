@@ -48,7 +48,7 @@ def loss_function(model_output, gt, loss_definition="CE"):
 
 def gumbel_softmax(logits, temperature=0.2):
     eps = 1e-20
-    u = torch.rand(logits.shape, device=logits.device, dtype=logits.dtype)
+    u = torch.rand(logits.shape, device=logits.device, dtype=logits.dtype) #服从均匀分布的随机数
     gumbel_noise = -torch.log(-torch.log(u + eps) + eps)
     y = logits + gumbel_noise
     return F.softmax(y / temperature, dim=-1)
@@ -103,8 +103,7 @@ class model(nn.Module):
         #print(self)
 
 
-    def sampling(self,vec):
-        vec = F.softmax(vec, dim=1)
+    def sampling(self,vec): 
         logits = gumbel_softmax(vec, 0.1)
         return logits
 
@@ -171,11 +170,15 @@ class model(nn.Module):
             if self.type_odm=="SBCM":
                 distance = torch.abs(x_u - vector_x)
 
+                # 按照论文修改了这里的计算方式
+                logits = -self.rho * torch.log(distance + 1e-12)
+                tilde_z_ut = gumbel_softmax(logits, 0.1)
+
                 ## Probability of user $u$ selecting user $v$ as an interaction partner at time $\tau_j$
-                p_uv = (distance + 1e-12).pow(self.rho)
+                # p_uv = (distance + 1e-12).pow(self.rho)
 
                 ## Differentiable one-hot approximation $\tilde{z}_u^t$ in Equation (9)
-                tilde_z_ut = self.sampling(p_uv)
+                # tilde_z_ut = self.sampling(p_uv)
 
                 ## Right hand side (rhs) of Equation (10)
                 rhs_ode = tilde_z_ut * (x_u - vector_x)
