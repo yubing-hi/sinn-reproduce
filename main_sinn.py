@@ -275,9 +275,9 @@ def main_sinn(data_type, method, root_path):
     test_sequence = sequence[(sequence[:,2]>=val_period),:]
     test_dataset = load_data(test_sequence, num_users=num_users, initial_u=initial_u)
 
-    train_dataloader = DataLoader(train_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=4)
-    val_dataloader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=4)
-    test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=4)
+    train_dataloader = DataLoader(train_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=2)
+    val_dataloader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=2)
+    test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=2)
 
 
     ###############################################################################
