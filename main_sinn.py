@@ -275,9 +275,9 @@ def main_sinn(data_type, method, root_path):
     test_sequence = sequence[(sequence[:,2]>=val_period),:]
     test_dataset = load_data(test_sequence, num_users=num_users, initial_u=initial_u)
 
-    train_dataloader = DataLoader(train_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=0)
-    val_dataloader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=0)
-    test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=0)
+    train_dataloader = DataLoader(train_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=4)
+    val_dataloader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=4)
+    test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=batch_size, pin_memory=True, num_workers=4)
 
 
     ###############################################################################
@@ -345,8 +345,6 @@ def main_sinn(data_type, method, root_path):
     print('## Performance for', method, 'on', data_type, 'dataset')
     print("## MAE:", mae.mean())
 
-    print(test_res["pred_label"][:10])   
-    print(test_res["gt"][:10]) 
 
     if (method=="SINN" or method=="NN" or method=="Voter"):
         truth_label = ((nclasses-1)*test_res["gt"]).astype(int)

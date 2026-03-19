@@ -50,7 +50,7 @@ def gumbel_softmax(logits, temperature=0.2):
     eps = 1e-20
     u = torch.rand(logits.shape, device=logits.device, dtype=logits.dtype) #服从均匀分布的随机数
     gumbel_noise = -torch.log(-torch.log(u + eps) + eps)
-    y = logits + gumbel_noise
+    y = logits + gumbel_noise  # 这里logits前面没有取log
     return F.softmax(y / temperature, dim=-1)
  
 
@@ -82,6 +82,7 @@ class model(nn.Module):
         ### Prepare neural network $f(t,\{bf e\}_u;\theta_f)$
         self.net = MLPNet(num_users=self.U, num_hidden_layers=num_hidden_layers,
                           hidden_features=hidden_features, outermost_linear=type, nonlinearity=type, use_profile=use_profile)
+        # 把输出的数值映射到类别标签
         self.val2label = nn.Linear(1, nclasses)
 
 
@@ -100,7 +101,7 @@ class model(nn.Module):
             elif "clustering" in dataset:
                 rho_val = 0.05
             else:
-                rho_val = 0.05  # 默认
+                rho_val = 1  # 默认
             self.register_buffer("rho", torch.tensor([rho_val], dtype=torch.float32)) 
 
         if self.type_odm=="BCM":
@@ -114,6 +115,8 @@ class model(nn.Module):
 
 
     def sampling(self,vec): 
+        #这里vec的计算与论文不符，论文应该是直接logits = gumbel_softmax(vec, 0.1)
+        vec = F.softmax(vec, dim=-1)
         logits = gumbel_softmax(vec, 0.1)
         return logits
 
@@ -154,6 +157,7 @@ class model(nn.Module):
                 _vector_x = self.net(taus, users)
 
             ## Predicted opinions of $U$ users $\{\tilde{x}_1(\tau_j),...,\tilde{x}_U(\tau_j)\}$
+            # 每一行都是一个含有U个用户的时间切片
             vector_x = torch.transpose(torch.reshape(_vector_x, (self.U, self.J)), 1, 0)
 
 
@@ -180,15 +184,15 @@ class model(nn.Module):
             if self.type_odm=="SBCM":
                 distance = torch.abs(x_u - vector_x)
 
-                # 按照论文修改了这里的计算方式
-                logits = -self.rho * torch.log(distance + 1e-12)
-                tilde_z_ut = gumbel_softmax(logits, 0.1)
+                # 严格按照论文是这样的
+                #logits = -self.rho * torch.log(distance + 1e-12)
+                #tilde_z_ut = gumbel_softmax(logits, 0.1)
 
                 ## Probability of user $u$ selecting user $v$ as an interaction partner at time $\tau_j$
-                # p_uv = (distance + 1e-12).pow(self.rho)
+                p_uv = (distance + 1e-12).pow(self.rho)
 
                 ## Differentiable one-hot approximation $\tilde{z}_u^t$ in Equation (9)
-                # tilde_z_ut = self.sampling(p_uv)
+                tilde_z_ut = self.sampling(p_uv)
 
                 ## Right hand side (rhs) of Equation (10)
                 rhs_ode = tilde_z_ut * (vector_x - x_u)
