@@ -92,6 +92,9 @@ class model(nn.Module):
             self.Q = nn.Parameter(torch.rand(self.U, self.K)/self.U) ## Latent matrix $Q\in\mathbb{R}^{U \times K}$
 
         if self.type_odm=="SBCM":
+            self.rho = nn.Parameter(torch.ones(1))  ## Exponent parameter $\rho$
+
+            '''
             ## $\rho$ 按 dataset 固定取值，不可学习
             dataset = kwargs.get("dataset", "")
             if "consensus" in dataset:
@@ -103,6 +106,7 @@ class model(nn.Module):
             else:
                 rho_val = 1  # 默认
             self.register_buffer("rho", torch.tensor([rho_val], dtype=torch.float32)) 
+            '''
 
         if self.type_odm=="BCM":
             self.mu = nn.Parameter(torch.ones(1))

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for dataset in synthetic_polarization #synthetic_consensus synthetic_clustering  #sample_twitter_Abortion
+for dataset in synthetic_polarization synthetic_consensus synthetic_clustering  #sample_twitter_Abortion
 do
     #for method in Voter DeGroot AsLM SLANT SLANT+ NN SINN
     for method in SINN
