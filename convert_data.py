@@ -3,34 +3,19 @@ import os
 import numpy as np
 import pandas as pd
 import json
-import matplotlib.pyplot as plt
 from scipy import signal
-import seaborn as sns
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import torch
+# from transformers import AutoTokenizer, AutoModelForSequenceClassification
+# import torch
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.metrics import accuracy_score
-import torchtext
-import re
 
-sns.set(style="white",font_scale=0.9)
-sns.set_context("paper", 1.5, {"lines.linewidth": 2})
+datasets = ["synthetic_consensus","synthetic_clustering","synthetic_polarization"]
+dataset_names = {"synthetic_consensus": "Consensus", "synthetic_clustering": "Clustering", "synthetic_polarization": "Polarization"}
 
-datasets = ["synthetic_consensus","synthetic_clustering","synthetic_polarization","twitter_BlackLivesMatter","twitter_Abortion","reddit_politics"]
-dataset_names = {"synthetic_consensus": "Consensus", "synthetic_clustering": "Clustering", "synthetic_polarization": "Polarization", 
-                 "twitter_BlackLivesMatter":"Twitter BLM","twitter_Abortion":"Twitter Abortion","reddit_politics":"Reddit Politics"} 
-
-
+# datasets = ["synthetic_consensus","synthetic_clustering","synthetic_polarization","twitter_BlackLivesMatter","twitter_Abortion","reddit_politics"]
+# dataset_names = {"synthetic_consensus": "Consensus", "synthetic_clustering": "Clustering", "synthetic_polarization": "Polarization", 
+                 # "twitter_BlackLivesMatter":"Twitter BLM","twitter_Abortion":"Twitter Abortion","reddit_politics":"Reddit Politics"} 
+                 
 if __name__ == '__main__':
 
     for data_type in datasets:
@@ -38,7 +23,11 @@ if __name__ == '__main__':
         if "synthetic" in data_type:
             df = pd.read_csv("working/"+data_type+".csv", delimiter=",", names=["user_id","opinion","time"], header=None)
             df["raw_opinion"] = df["opinion"].copy()
-            df["opinion"] = pd.cut(df["opinion"], [-1.1, -0.6, -0.2, 0.2, 0.6, 1.1], labels=range(5)).astype(float)
+            bins = [-1.0, -0.6, -0.2, 0.2, 0.6, 1.0]
+            df["opinion"] = pd.cut(df["opinion"], bins=bins, labels=range(5), include_lowest=True)
+            df = df.dropna(subset=["opinion"])
+            df["opinion"] = df["opinion"].astype(int)
+            nclasses = 5
         elif "reddit" in data_type:
             df = pd.read_csv("working/posts_"+data_type+".tsv", delimiter=",", usecols=["date", "user", "time", "sentence", "opinion"], #dtype="object") 
                              dtype={"date": str, "user": str, "time": np.float64, "sentence": str}, parse_dates=["date"]) 

@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from requests_oauthlib import OAuth1Session
 
+os.environ["BEARER_TOKEN"] = "AAAAAAAAAAAAAAAAAAAAAJQF8QEAAAAAMyi4cEZTjpht5%2BHht%2FPsd7Cwxkw%3DWphHta0xjlDPu57jxRGaZaWIdCbqTJAO98RGwD6wQ6hW2aj4Ku"
+
 
 bearer_token = os.environ.get("BEARER_TOKEN")
 

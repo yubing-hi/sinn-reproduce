@@ -30,8 +30,8 @@ def generate(N, Q, T, interactions_per_timestep=10,
 
 
         xtp1 = xt.copy()
-        for _ in range(interactions_per_timestep):
-            i = np.random.randint(N)
+        initiators = np.random.choice(N, size=15, replace=False)
+        for i in initiators:
 
             if exponents==0.0:
                j = np.random.choice(N)
@@ -56,7 +56,7 @@ def generate(N, Q, T, interactions_per_timestep=10,
     return X, u_v_t_w
 
 hyperparams_settings = {
-    'consensus': {'mu': 0.05, 'exponents': -1.0},
+    'consensus': {'mu': 0.1, 'exponents': -1.0},
     'clustering': {'mu': 0.05, 'exponents': 0.05},
     'polarization': {'mu': 0.02, 'exponents': 0.5},
 }

@@ -50,7 +50,7 @@ def gumbel_softmax(logits, temperature=0.2):
     eps = 1e-20
     u = torch.rand(logits.shape, device=logits.device, dtype=logits.dtype) #服从均匀分布的随机数
     gumbel_noise = -torch.log(-torch.log(u + eps) + eps)
-    y = logits + gumbel_noise  # 这里logits前面没有取log
+    y = logits + gumbel_noise 
     return F.softmax(y / temperature, dim=-1)
  
 
@@ -188,7 +188,7 @@ class model(nn.Module):
                 distance = torch.abs(x_u - vector_x)
 
                 # 严格按照论文是这样的
-                logits = self.rho * torch.log(distance + 1e-12)
+                logits = -self.rho * torch.log(distance + 1e-12)
                 tilde_z_ut = gumbel_softmax(logits, 0.1)
 
                 ## Probability of user $u$ selecting user $v$ as an interaction partner at time $\tau_j$
