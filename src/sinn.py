@@ -97,11 +97,11 @@ class model(nn.Module):
             ## $\rho$ 按 dataset 固定取值，不可学习
             dataset = kwargs.get("dataset", "")
             if "consensus" in dataset:
-                rho_val = 1.0
+                rho_val = -1.0
             elif "polarization" in dataset:
-                rho_val = -0.5
+                rho_val = 0.5
             elif "clustering" in dataset:
-                rho_val = -0.05
+                rho_val = 0.05
             else:
                 rho_val = 1  # 默认
             self.register_buffer("rho", torch.tensor([rho_val], dtype=torch.float32)) 
@@ -192,7 +192,7 @@ class model(nn.Module):
                 tilde_z_ut = gumbel_softmax(logits, 0.1)
 
                 ## Probability of user $u$ selecting user $v$ as an interaction partner at time $\tau_j$
-                # p_uv = (distance + 1e-12).pow(self.rho)
+                # p_uv = (distance + 1e-12).pow(-self.rho)
 
                 ## Differentiable one-hot approximation $\tilde{z}_u^t$ in Equation (9)
                 # tilde_z_ut = self.sampling(p_uv)
